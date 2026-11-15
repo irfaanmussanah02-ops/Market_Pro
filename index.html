@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Pro App - Supermarket SaaS & POS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [activeTab, setActiveTab] = React.useState('pos');
+            const [role, setRole] = React.useState('admin');
+            const [language, setLanguage] = React.useState('en');
+            const [currency, setCurrency] = React.useState('INR');
+
+            // Admin Login State
+            const [isAdminLoggedIn, setIsAdminLoggedIn] = React.useState(false);
+            const [adminPasswordInput, setAdminPasswordInput] = React.useState('');
+            const adminSecretPassword = "admin123"; // You can change this password here
+
+            // Store Config State
+            const [storeConfig, setStoreConfig] = React.useState({
+                name: "Market Pro Supermarket",
+                owner: "Store Admin",
+                phone: "+91 9876543210",
+                whatsapp: "+919876543210",
+                location: "Main Bazaar, City Center",
+                logo: "🛒"
+            });
+
+            // Products State
+            const [products, setProducts] = React.useState([
+                { id: 1, name: "Arokya Fresh Milk 500ml", price: 28, stock: 150, barcode: "8901234001", image: "🥛
