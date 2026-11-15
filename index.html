@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Pro App - Supermarket SaaS & POS</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [activeTab, setActiveTab] = React.useState('pos');
+            const [role, setRole] = React.useState('admin');
+            const [language, setLanguage] = React.useState('en');
+            const [currency, setCurrency] = React.useState('INR');
+
+            // Store Config State
+            const [storeConfig, setStoreConfig] = React.useState({
+                name: "Market Pro Supermarket",
+                owner: "Store Admin",
+                phone: "+91 9876543210",
+                whatsapp: "+919876543210",
+                location: "Main Bazaar, City Center",
+                logo: "🛒"
+            });
+
+            // Products State
+            const [products, setProducts] = React.useState([
+                { id: 1, name: "Arokya Fresh Milk 500ml", price: 28, stock: 150, barcode: "8901234001", image: "🥛" },
+                { id: 2, name: "Aashirvaad Atta 5kg", price: 240, stock: 40, barcode: "8901234002", image: "🌾" },
+                { id: 3, name: "Tata Salt 1kg", price: 25, stock: 200, barcode: "8901234003", image: "🧂" },
+                { id: 4, name: "Coconut Oil 1L", price: 180, stock: 65, barcode: "8901234004", image: "🥥" }
+            ]);
+
+            // Cart & POS State
+            const [cart, setCart] = React.useState([]);
+            const [barcodeInput, setBarcodeInput] = React.useState('');
+            
+            // Orders State
+            const [orders, setOrders] = React.useState([
+                { id: "ORD-101", customer: "Ramesh Kumar", total: 506, status: "Pending", items: "Milk x2, Atta x1", deliveryBoy: "Unassigned" }
+            ]);
+
+            // Add to Cart
+            const addToCart = (prod) => {
+                const exist = cart.find(item => item.id === prod.id);
+                if (exist) {
+                    setCart(cart.map(x => x.id === prod.id ? {...exist, qty: exist.qty + 1} : x));
+                } else {
+                    setCart([...cart, {...prod, qty: 1}]);
+                }
+            };
+
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            // Handle Barcode Scan
+            const handleBarcodeSubmit = (e) => {
+                e.preventDefault();
+                const found = products.find(p => p.barcode === barcodeInput);
+                if (found) {
+                    addToCart(found);
+                    setBarcodeInput('');
+                } else {
+                    alert("Product not found for barcode: " + barcodeInput);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    {/* Top Navigation Header */}
+                    <header className="bg-indigo-600 text-white shadow-md p-4 flex flex-wrap justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                            <span className="text-3xl">{storeConfig.logo}</span>
+                            <div>
+                                <h1 className="text-xl font-bold">{storeConfig.name}</h1>
+                                <p className="text-xs text-indigo-200">Owner: {storeConfig.owner} | {storeConfig.location}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-4 mt-2 md:mt-0">
+                            {/* Currency Selector */}
+                            <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="bg-indigo-700 text-white text-sm px-2 py-1 rounded border border-indigo-500">
+                                <option value="INR">₹ INR</option>
+                                <option value="USD">$ USD</option>
+                                <option value="AED">AED</option>
+                            </select>
+
+                            {/* Language Selector */}
+                            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-indigo-700 text-white text-sm px-2 py-1 rounded border border-indigo-500">
+                                <option value="en">English</option>
+                                <option value="ta">தமிழ் (Tamil)</option>
+                            </select>
+
+                            {/* Role Switcher */}
+                            <button onClick={() => setRole(role === 'admin' ? 'user' : 'admin')} className="bg-indigo-800 px-3 py-1 rounded text-sm font-semibold hover:bg-indigo-900">
+                                Role: {role.toUpperCase()}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Navigation Tabs */}
+                    <nav className="bg-white border-b border-slate-200 px-4 flex overflow-x-auto space-x-2 py-2">
+                        <button onClick={() => setActiveTab('pos')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'pos' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-cash-register mr-2"></i> POS Counter</button>
+                        <button onClick={() => setActiveTab('inventory')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'inventory' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-boxes-stacked mr-2"></i> Inventory & CSV</button>
+                        <button onClick={() => setActiveTab('flyers')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'flyers' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-bullhorn mr-2"></i> 1500+ Offer Flyers</button>
+                        <button onClick={() => setActiveTab('barcodes')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'barcodes' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-barcode mr-2"></i> Barcode Price Tags</button>
+                        <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'orders' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-cart-shopping mr-2"></i> Online Orders & Delivery</button>
+                        <button onClick={() => setActiveTab('wholesale')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'wholesale' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-file-invoice-dollar mr-2"></i> Wholesale Invoice</button>
+                        {role === 'admin' && (
+                            <button onClick={() => setActiveTab('admin')} className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${activeTab === 'admin' ? 'bg-indigo-50 text-indigo-600 font-bold' : 'text-slate-600 hover:bg-slate-100'}`}><i className="fa-solid fa-gear mr-2"></i> Client Store Setup</button>
+                        )}
+                    </nav>
+
+                    {/* Main Content Body */}
+                    <main className="flex-1 p-6 max-w-7xl w-full mx-auto">
+                        
+                        {/* 1. POS COUNTER TAB */}
+                        {activeTab === 'pos' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2 space-y-4">
+                                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                                        <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Scan Barcode or Type Product Code..." 
+                                                value={barcodeInput} 
+                                                onChange={(e) => setBarcodeInput(e.target.value)}
+                                                className="flex-1 border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            />
+                                            <button type="submit" className="bg-indigo-600 text-white px-5 py-2 rounded-lg font-medium hover:bg-indigo-700">Scan</button>
+                                        </form>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {products.map(prod => (
+                                            <div key={prod.id} onClick={() => addToCart(prod)} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-pointer hover:border-indigo-500 transition">
+                                                <div className="text-4xl mb-2">{prod.image}</div>
+                                                <h3 className="font-semibold text-sm">{prod.name}</h3>
+                                                <p className="text-indigo-600 font-bold mt-1">{currency === 'INR' ? '₹' : currency === 'USD' ? '$' : 'AED'} {prod.price}</p>
+                                                <span className="text-xs text-slate-400">Stock: {prod.stock}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Billing Cart */}
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-bold border-b pb-2 mb-4"><i className="fa-solid fa-receipt mr-2"></i> Current Bill</h2>
+                                        {cart.length === 0 ? (
+                                            <p className="text-slate-400 text-sm text-center py-8">Cart is empty. Click items or scan barcode.</p>
+                                        ) : (
+                                            <div className="space-y-3 max-h-64 overflow-y-auto">
+                                                {cart.map(item => (
+                                                    <div key={item.id} className="flex justify-between items-center text-sm border-b pb-2">
+                                                        <div>
+                                                            <p className="font-medium">{item.name}</p>
+                                                            <p className="text-xs text-slate-500">{item.qty} x {item.price}</p>
+                                                        </div>
+                                                        <span className="font-bold">{item.qty * item.price}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="border-t pt-4 mt-4">
+                                        <div className="flex justify-between font-bold text-lg mb-4">
+                                            <span>Total Amount:</span>
+                                            <span className="text-indigo-600">{cartTotal}</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => { alert("Bill Generated & Printed Successfully! PDF Copy saved."); setCart([]); }}
+                                            disabled={cart.length === 0} 
+                                            className="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 disabled:bg-slate-300"
+                                        >
+                                            Generate PDF Bill & Pay
+                                        </button>
+                                        <a 
+                                            href={`https://wa.me/?text=Hello%20Here%20is%20my%20order%20total:%20${cartTotal}`} 
+                                            target="_blank" 
+                                            className="block text-center mt-2 bg-green-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-600"
+                                        >
+                                            <i className="fa-brands fa-whatsapp mr-1"></i> Send Bill via WhatsApp
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 2. INVENTORY & CSV SYNC */}
+                        {activeTab === 'inventory' && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-xl font-bold">Inventory & Product Database Management</h2>
+                                    <div className="space-x-2">
+                                        <button onClick={() => alert("CSV Synced Successfully!")} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm"><i className="fa-solid fa-sync mr-1"></i> Sync CSV</button>
+                                        <button onClick={() => alert("Bulk Upload Window Opened (PDF/Excel)")} className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm"><i className="fa-solid fa-file-excel mr-1"></i> Upload Excel/PDF</button>
+                                    </div>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-100 border-b">
+                                                <th className="p-3">Icon</th>
+                                                <th className="p-3">Product Name</th>
+                                                <th className="p-3">Barcode</th>
+                                                <th className="p-3">Price</th>
+                                                <th className="p-3">Stock</th>
+                                                <th className="p-3">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {products.map(p => (
+                                                <tr key={p.id} className="border-b hover:bg-slate-50">
+                                                    <td className="p-3 text-2xl">{p.image}</td>
+                                                    <td className="p-3 font-medium">{p.name}</td>
+                                                    <td className="p-3 text-slate-500 font-mono">{p.barcode}</td>
+                                                    <td className="p-3 font-bold">{p.price}</td>
+                                                    <td className="p-3">{p.stock}</td>
+                                                    <td className="p-3"><button className="text-indigo-600 hover:underline">Edit</button></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3. OFFER FLYERS */}
+                        {activeTab === 'flyers' && (
+                            <div className="space-y-6">
+                                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                                    <div>
+                                        <h2 className="text-xl font-bold">1500+ Offer Flyer Templates</h2>
+                                        <p className="text-sm text-slate-500">Choose from festive, daily discount, and supermarket promotion layouts.</p>
+                                    </div>
+                                    <button onClick={() => alert("Custom Flyer Editor opened!")} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Create Custom Offer Flyer</button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {[1, 2, 3, 4, 5, 6].map(i => (
+                                        <div key={i} className="bg-gradient-to-br from-orange-500 to-pink-600 text-white p-6 rounded-xl shadow-md flex flex-col justify-between h-56">
+                                            <div>
+                                                <span className="bg-white/20 text-xs px-2 py-1 rounded font-bold uppercase">Mega Sale #{i}</span>
+                                                <h3 className="text-2xl font-black mt-3">SUPER DISCOUNTS UP TO 50% OFF</h3>
+                                                <p className="text-xs mt-1 opacity-90">{storeConfig.name}</p>
+                                            </div>
+                                            <a 
+                                                href={`https://wa.me/?text=Check%20out%20our%20new%20offer%20flyer%20from%20${storeConfig.name}!`} 
+                                                target="_blank" 
+                                                className="bg-white text-orange-600 font-bold text-center py-2 rounded-lg text-sm hover:bg-orange-50"
+                                            >
+                                                <i className="fa-brands fa-whatsapp mr-1"></i> Send Offer via WhatsApp
+                                            </a>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. BARCODE PRICE TAGS */}
+                        {activeTab === 'barcodes' && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                                <h2 className="text-xl font-bold">Barcode Price Tag Generator</h2>
+                                <p className="text-sm text-slate-500">Generate shelf price tags with scannable barcodes for your supermarket items.</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                    {products.map(p => (
+                                        <div key={p.id} className="border-2 border-dashed border-slate-300 p-4 rounded-xl text-center bg-slate-50">
+                                            <p className="text-xs font-bold text-slate-400">{storeConfig.name}</p>
+                                            <h4 className="font-bold text-lg mt-1">{p.name}</h4>
+                                            <p className="text-2xl font-black text-indigo-600 my-2">₹ {p.price}</p>
+                                            <div className="font-mono bg-white py-1 px-2 border rounded text-xs tracking-widest">||| |||||| ||||</div>
+                                            <p className="text-[10px] text-slate-500 mt-1">{p.barcode}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 5. ONLINE ORDERS & DELIVERY */}
+                        {activeTab === 'orders' && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                                <h2 className="text-xl font-bold">Online Orders & Delivery Management</h2>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-100 border-b">
+                                                <th className="p-3">Order ID</th>
+                                                <th className="p-3">Customer</th>
+                                                <th className="p-3">Items</th>
+                                                <th className="p-3">Total</th>
+                                                <th className="p-3">Status</th>
+                                                <th className="p-3">Delivery Boy Option</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {orders.map(o => (
+                                                <tr key={o.id} className="border-b">
+                                                    <td className="p-3 font-mono font-bold">{o.id}</td>
+                                                    <td className="p-3">{o.customer}</td>
+                                                    <td className="p-3">{o.items}</td>
+                                                    <td className="p-3 font-bold">₹ {o.total}</td>
+                                                    <td className="p-3"><span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-semibold">{o.status}</span></td>
+                                                    <td className="p-3">
+                                                        <select className="border rounded px-2 py-1 text-xs">
+                                                            <option>Assign Delivery Boy #1</option>
+                                                            <option>Assign Delivery Boy #2</option>
+                                                            <option>Without Delivery Boy</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 6. WHOLESALE INVOICE */}
+                        {activeTab === 'wholesale' && (
+                            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-3xl mx-auto space-y-6">
+                                <div className="flex justify-between border-b pb-4">
+                                    <div>
+                                        <h2 className="text-2xl font-black">{storeConfig.name}</h2>
+                                        <p className="text-xs text-slate-500">{storeConfig.location}</p>
+                                        <p className="text-xs text-slate-500">Phone: {storeConfig.phone} | WhatsApp: {storeConfig.whatsapp}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-lg font-bold text-indigo-600">WHOLESALE INVOICE</h3>
+                                        <p className="text-xs text-slate-500">Date: {new Date().toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b text-slate-600">
+                                            <th className="py-2">Item Description</th>
+                                            <th className="py-2 text-center">Qty</th>
+                                            <th className="py-2 text-right">Price</th>
+                                            <th className="py-2 text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {products.map(p => (
+                                            <tr key={p.id} className="border-b">
+                                                <td className="py-2">{p.name}</td>
+                                                <td className="py-2 text-center">10 Box</td>
+                                                <td className="py-2 text-right">{p.price * 10}</td>
+                                                <td className="py-2 text-right font-bold">{p.price * 10}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <div className="flex justify-between items-center pt-4">
+                                    <button onClick={() => alert("Wholesale Invoice Downloaded as PDF!")} className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-bold">Download Wholesale PDF</button>
+                                    <div className="text-right">
+                                        <p className="text-xs text-slate-500">Grand Total</p>
+                                        <p className="text-2xl font-black text-indigo-600">₹ 4,730</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 7. ADMIN CONFIGURATION */}
+                        {activeTab === 'admin' && role === 'admin' && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-xl mx-auto space-y-4">
+                                <h2 className="text-xl font-bold">Client Store Setup (Admin Settings)</h2>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Store Name</label>
+                                    <input type="text" value={storeConfig.name} onChange={(e) => setStoreConfig({...storeConfig, name: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Shop Owner Name</label>
+                                    <input type="text" value={storeConfig.owner} onChange={(e) => setStoreConfig({...storeConfig, owner: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1">Phone Number</label>
+                                        <input type="text" value={storeConfig.phone} onChange={(e) => setStoreConfig({...storeConfig, phone: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-600 mb-1">WhatsApp Number</label>
+                                        <input type="text" value={storeConfig.whatsapp} onChange={(e) => setStoreConfig({...storeConfig, whatsapp: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-600 mb-1">Store Location</label>
+                                    <input type="text" value={storeConfig.location} onChange={(e) => setStoreConfig({...storeConfig, location: e.target.value})} className="w-full border rounded px-3 py-2 text-sm" />
+                                </div>
+                                <button onClick={() => alert("Store Settings Updated Successfully!")} className="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold text-sm">Save Store Configuration</button>
+                            </div>
+                        )}
+
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
